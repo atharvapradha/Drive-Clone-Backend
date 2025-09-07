@@ -1,43 +1,50 @@
-// src/server.js
-const express = require("express");
-const app = require("./app");
-const { createClient } = require("@supabase/supabase-js");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
 
-// ✅ Load environment variables
-require("dotenv").config();
+// Load environment variables
+dotenv.config();
 
+const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Supabase connection
+// ✅ Check env variables
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+  console.error("❌ Missing Supabase environment variables");
+} else {
+  console.log("✅ Supabase environment variables loaded");
+}
+
+// Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
 
-// Test DB connection
-(async () => {
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Example route to test Supabase connection
+app.get("/api/test-supabase", async (req, res) => {
   try {
-    const { data, error } = await supabase.from("users").select("id").limit(1);
+    const { data, error } = await supabase.from("files").select("*").limit(1);
     if (error) throw error;
-    console.log("✅ Supabase connected successfully!");
+
+    res.json({ success: true, data });
   } catch (err) {
     console.error("❌ Supabase connection failed:", err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
-})();
+});
 
-// ✅ Import routes
-const authRoutes = require("./routes/authRoutes");
-const fileRoutes = require("./routes/fileRoutes");
-const shareRoutes = require("./routes/shareRoutes");
+// Root route
+app.get("/", (req, res) => {
+  res.send("✅ Server is running...");
+});
 
-// ✅ Use routes
-app.use("/api/auth", authRoutes);
-app.use("/api/files", fileRoutes);
-app.use("/api/share", shareRoutes);
-
-// ✅ Start server only when run directly (not during Jest tests)
-if (require.main === module) {
-  app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-}
-
-module.exports = app; // ✅ Export app for Supertest
+// Start server
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
