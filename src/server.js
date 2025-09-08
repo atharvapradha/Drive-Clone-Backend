@@ -27,7 +27,7 @@ const supabase = createClient(
 app.use(cors());
 app.use(express.json());
 
-// Import routes
+// ✅ Import and mount auth routes
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
@@ -52,4 +52,7 @@ app.get("/", (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
+  console.log("Available endpoints:");
+  console.log("POST /api/auth/signup");
+  console.log("POST /api/auth/login");
 });

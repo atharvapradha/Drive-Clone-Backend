@@ -1,7 +1,48 @@
+// src/controllers/authController.js
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { findUserByEmail } = require("../models/User");
+const { findUserByEmail, createUser } = require("../models/User");
 
+// Register new user
+const register = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required" });
+    }
+
+    // Check if user already exists
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const newUser = await createUser({ name, email, password: hashedPassword });
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: newUser.id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({
+      message: "Signup successful",
+      token,
+      user: { id: newUser.id, name: newUser.name, email: newUser.email },
+    });
+  } catch (error) {
+    console.error("Register Error:", error.message, error.stack);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Login existing user
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -32,11 +73,10 @@ const login = async (req, res) => {
       token,
       user: { id: user.id, name: user.name, email: user.email },
     });
-  }catch (error) {
-  console.error("Login Error:", error.message, error.stack);
-  res.status(500).json({ message: "Server error", error: error.message });
-}
-
+  } catch (error) {
+    console.error("Login Error:", error.message, error.stack);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 };
 
-module.exports = { login };
+module.exports = { register, login };
