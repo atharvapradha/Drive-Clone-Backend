@@ -1,14 +1,16 @@
 const { createClient } = require("@supabase/supabase-js");
 require("dotenv").config();
 
-const url = process.env.SUPABASE_URL;
-// ⚠️ For backend, prefer SERVICE_ROLE for admin DB/storage ops
-const key = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
+// Load environment variables
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; // safer for backend
 
-if (!url || !key) {
-  throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY/ANON_KEY in .env");
+// Validate
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env");
 }
 
-const supabase = createClient(url, key);
+// Create Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 module.exports = supabase;

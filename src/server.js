@@ -1,7 +1,8 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import { createClient } from "@supabase/supabase-js";
+// src/server.js
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const { createClient } = require("@supabase/supabase-js");
 
 // Load environment variables
 dotenv.config();
@@ -25,6 +26,10 @@ const supabase = createClient(
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Import routes
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
 
 // Example route to test Supabase connection
 app.get("/api/test-supabase", async (req, res) => {
